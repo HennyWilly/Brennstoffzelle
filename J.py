@@ -43,14 +43,12 @@ def Gradient():
     class FunctionRight(Expression):
     
         def eval(self, values, x):
-            if x[1] < 0.25 + DOLFIN_EPS:
-                values[0] = 5
-            elif x[1] < 0.5 + DOLFIN_EPS:
+            if x[1] < 0.5 + DOLFIN_EPS:
                 values[0] = 0
             else:
                 values[0] = 5
         
-    n=20
+    n=40
     mesh = UnitSquareMesh(n, n)
     j= {}
     for i in range(n+1) :
@@ -126,11 +124,11 @@ def Gradient():
     #print "\int u dx(1) = ", v2
     
     # Plot solution and gradient
-    #plot(u, title="u")
+    plot(u, title="u")
     gul=grad(u)
-    #plot(gul, title="Projected grad(u) left")
+    plot(gul, title="Projected grad(u) left")
     gur=grad(-u)
-    #plot(gur, title="Projected grad(-u) right")
+    plot(gur, title="Projected grad(-u) right")
     #gu=np.concatenate((gul,gur),axis=0)
 
     
@@ -139,8 +137,8 @@ def Gradient():
     
     def gradient(x,y):
         if (x>0):
-            return(pror(x,y))
-        return(prol(x+1,y))
+            return(pror(1-x,y))
+        return(prol(1+x,y))
         
     
     return(gradient)
@@ -152,6 +150,43 @@ def Gradient():
     #plot(flux_x, title='x-component of flux (-p*grad(u))')
     #plot(flux_y, title='y-component of flux (-p*grad(u))')
     
+def test() :
+    g=Gradient()
+    x=range(0,101)
+    x = np.array(x)
+    x = x/100.
+    y = np.array(x)
+    y2 = np.array(x)
+    ynorm=np.zeros((201,101))
+    yin0=np.zeros((201,101))
+    yin1=np.zeros((201,101))
     
-
-     
+    for i in range(101) :
+        y[i]=g(0,x[i])[0] 
+        y2[i]=g(0,x[i])[1]
+        
+        for i in range(201) :
+            for j in range(101) :
+                cx=(i/100.0) - 1
+                cy=(j/100.0)
+                ynorm[i,j]=np.linalg.norm(g(cx,cy))
+                yin0[i,j]=g(cx,cy)[0]
+                yin1[i,j]=g(cx,cy)[1]
+                    
+    mpl.plot(x,y)
+    mpl.plot(x,y2)
+    
+    mpl.figure()
+    mpl.imshow(ynorm)
+    mpl.colorbar()
+    
+    mpl.figure()
+    mpl.imshow(yin0)
+    mpl.colorbar()
+    
+    mpl.figure()
+    mpl.imshow(yin1)
+    mpl.colorbar()
+    
+    mpl.show()
+         
