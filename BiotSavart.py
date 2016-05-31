@@ -50,24 +50,34 @@ def BiotSavart(x, J):
     
     return 1 / (4 * math.pi) * (intl + intr)
     
-def BiotSavartMatrix(J, n=100, m=36):
+def BiotSavartMatrix(J, n=100., m=36.):
     #n Auswwertungsstellen
     #m Messstellen
+    #2n > m, sonst liegt ein unterbestimmtes System vor
     BS = zeros((m, 2 * n), float)
     discJ = zeros((2 * n, 1), float)
     yList = zeros((n, 1), float)
     xList = zeros((m, 1), float)
     for (i, y) in enumerate(itertools.product(linspace(-1, 1, sqrt(n)/2), (0, 1, sqrt(n)/2))):
+        #diskrete Auswertungsstellen
         yList[i] = array(y)
         
     for (i, x) in enumerate(itertools.chain(itertools.product(linspace(-1, 1, sqrt(m)/2), range(2)), itertools.product((-1, 1), linspace(0, 1, sqrt(m)/2)))):
+        #diskrete Messstellen
         xList[i] = array(x)     
         
     for (i, y) in enumerate(yList):    
         for (j, x) in enumerate(xList):
             #Matrix aufstellen
-            BS[j][2*i] += (x[2] - y[2]) * norm(x - y)**3
-            BS[j][2*i + 1] += (x[1] - y[1]) * norm(x - y)**3
+            BS[j][2*i] += 1/n * (x[2] - y[2]) * norm(x - y)**3
+            BS[j][2*i + 1] += 1/n (x[1] - y[1]) * norm(x - y)**3
+            if (y[0] == -1 or y[0] == 1):
+                BS[j][2*i] /= 2
+                BS[j][2*i + 1] /= 2
+                
+            if (y[1] == 0 or y[1] == 1):
+                BS[j][2*i] /= 2
+                BS[j][2*i + 1] /= 2
             
         #diskrete J's
         discJ[2*i] = J(y)[0]
