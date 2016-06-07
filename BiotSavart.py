@@ -8,6 +8,7 @@ Created on Tue May  3 09:55:35 2016
 from pylab import *
 from numpy.linalg import norm
 from math import pi
+import itertools
 
 def BiotSavart(x, J):
     n = 100
@@ -57,9 +58,9 @@ def BiotSavartMatrix(J, n=100., m=36.):
     #2n > m, sonst liegt ein unterbestimmtes System vor
     BS = zeros((m, 2 * n), float)
     discJ = zeros((2 * n, 1), float)
-    yList = zeros((n, 1), float)
-    xList = zeros((m, 1), float)
-    for (i, y) in enumerate(itertools.product(linspace(-1, 1, sqrt(n)/2), (0, 1, sqrt(n)/2))):
+    yList = zeros((n, 2), float)
+    xList = zeros((m, 2), float)
+    for (i, y) in enumerate(itertools.product(linspace(-1, 1, sqrt(n)/2), linspace(0, 1, sqrt(n)/2))):
         #diskrete Auswertungsstellen
         yList[i] = array(y)
         
@@ -70,18 +71,22 @@ def BiotSavartMatrix(J, n=100., m=36.):
     for (i, y) in enumerate(yList):    
         for (j, x) in enumerate(xList):
             #Matrix aufstellen
-            BS[j][2*i] += 1/(4*pip*n) * (x[2] - y[2]) * norm(x - y)**3
-            BS[j][2*i + 1] += 1/(4*pi*n) (x[1] - y[1]) * norm(x - y)**3
+            BS[j][2*i] = BS[j][2*i] + 1/(4*pi*n) * (x[1] - y[1]) * norm(x - y)**3
+            BS[j][2*i + 1] = BS[j][2*i + 1] + 1/(4*pi*n) * (x[0] - y[0]) * norm(x - y)**3
             if (y[0] == -1 or y[0] == 1):
-                BS[j][2*i] /= 2
-                BS[j][2*i + 1] /= 2
+                BS[j][2*i] = BS[j][2*i] / 2
+                BS[j][2*i + 1] = BS[j][2*i + 1] / 2
                 
             if (y[1] == 0 or y[1] == 1):
-                BS[j][2*i] /= 2
-                BS[j][2*i + 1] /= 2
+                BS[j][2*i] = BS[j][2*i] / 2
+                BS[j][2*i + 1] = BS[j][2*i + 1] / 2
             
         #diskrete J's
         discJ[2*i] = J(y)[0]
         discJ[2*i + 1] = J(y)[1]
             
     return BS, discJ
+    
+if __name__ == '__main__':
+    BS, J = BiotSavartMatrix(lambda x: (1, 1))
+    print BS, J
