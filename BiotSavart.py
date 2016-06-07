@@ -64,7 +64,7 @@ def BiotSavartMatrix(J, n=100., m=36.):
         #diskrete Auswertungsstellen
         yList[i] = array(y)
         
-    for (i, x) in enumerate(itertools.chain(itertools.product(linspace(-1, 1, sqrt(m)/2), range(2)), itertools.product((-1, 1), linspace(0, 1, sqrt(m)/2)))):
+    for (i, x) in enumerate(itertools.chain(itertools.product(linspace(-1, 1, m/4.), (0.0, 1.0)), itertools.product((-1., 1.), linspace(0, 1, m/4.)))):
         #diskrete Messstellen
         xList[i] = array(x)     
         
@@ -88,5 +88,5 @@ def BiotSavartMatrix(J, n=100., m=36.):
     return BS, discJ, xList
     
 if __name__ == '__main__':
-    BS, J = BiotSavartMatrix(lambda x: (1, 1))
-    print BS, J
+    BS, J, x = BiotSavartMatrix(lambda x: (1, 1))
+    print BS, J, x
