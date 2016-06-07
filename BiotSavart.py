@@ -7,6 +7,7 @@ Created on Tue May  3 09:55:35 2016
 
 from pylab import *
 from numpy.linalg import norm
+from math import pi
 
 def BiotSavart(x, J):
     n = 100
