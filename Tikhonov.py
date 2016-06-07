@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+from pylab import *
+from scipy.linalg import *
+from scipy.integrate import *
 import numpy as np
 import numpy.matlib as matlib
 import scipy.optimize as spOpt
 from scipy.linalg import *
+from mpl_toolkits.mplot3d import Axes3D
 
-def tikhonov(A, b, alpha, allowNegative):
+def tikhonov(A, b, alpha, allowNegative=True):
     """
     Hier koennte Ihr PythonDoc stehen
     """
@@ -15,9 +19,11 @@ def tikhonov(A, b, alpha, allowNegative):
     b1 = np.concatenate((b, np.zeros(shape=(n,1))))
 
     if (allowNegative):
-        return lstsq(A1, np.squeeze(b1))[0]
+        x, res, rank, s = lstsq(A1, np.squeeze(b1))
+        return x, res, norm(x)
     else:
-        return spOpt.nnls(A1, np.squeeze(b1))[0]
+        x, res = spOpt.nnls(A1, np.squeeze(b1))
+        return x, res, norm(x)
     
 def l_curve(A, b, n):
     """
@@ -29,20 +35,24 @@ def l_curve(A, b, n):
     normArray = np.zeros(n)
     alphaArray = np.zeros(n)
     
-    i = 0
-    for t in tt:
-        x, res, norm = tkhnv.tikhonov(A, b, t) 
+    for (i, t) in enumerate(tt):
+        x, res, norm = tikhonov(A, b, t) 
         if res:     
             resArray[i] = res
             normArray[i] = norm
             alphaArray[i] = t
-        i = i + 1
     
     fig = plt.figure()
+    
     ax = fig.add_subplot(111)
     
-    plt.plot(resArray, normArray, 'ro')
-    for j in range(0, n, 10):
-        ax.annotate('(%s)' % alphaArray[j], xy=(resArray[j], normArray[j]), textcoords='data')
+    plt.plot(resArray, normArray, picker=2)
     plt.loglog()
+    ax.set_xlabel("Residuum")
+    ax.set_ylabel("Norm")
+    def onpick1(event):
+        if isinstance(event.artist, Line2D):
+            print('alpha(s):', alphaArray[event.ind])
+
+    fig.canvas.mpl_connect('pick_event', onpick1)
     plt.show()
