@@ -69,8 +69,8 @@ def BiotSavartMatrix(J, n=100., m=36.):
     for (i, y) in enumerate(yList):    
         for (j, x) in enumerate(xList):
             #Matrix aufstellen
-            BS[j][2*i] += 1/n * (x[2] - y[2]) * norm(x - y)**3
-            BS[j][2*i + 1] += 1/n (x[1] - y[1]) * norm(x - y)**3
+            BS[j][2*i] += 1/(4*pip*n) * (x[2] - y[2]) * norm(x - y)**3
+            BS[j][2*i + 1] += 1/(4*pi*n) (x[1] - y[1]) * norm(x - y)**3
             if (y[0] == -1 or y[0] == 1):
                 BS[j][2*i] /= 2
                 BS[j][2*i + 1] /= 2
