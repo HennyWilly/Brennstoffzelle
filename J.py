@@ -6,8 +6,14 @@ Created on Tue May 10 10:29:10 2016
 """
 
 from dolfin import *
+import pylab as pl
 import numpy as np
 import matplotlib.pyplot as mpl
+from BiotSavart import BiotSavartMatrix
+from matplotlib import cm
+from numpy.linalg import pinv
+from numpy.linalg import svd
+
     
 def Gradient():    
     # Create classes for defining parts of the boundaries and the interior
@@ -48,7 +54,8 @@ def Gradient():
             else:
                 values[0] = 5
         
-    n=40
+    n=30
+    h=1.0/n
     mesh = UnitSquareMesh(n, n)
     j= {}
     for i in range(n+1) :
@@ -111,20 +118,9 @@ def Gradient():
     # Solve problem
     u = Function(V)
     solve(a == L, u, bcs)
-    
-    # Evaluate integral of normal gradient over top boundary
-    n = FacetNormal(mesh)
-    m1 = dot(grad(u), n)*ds(2)
-    v1 = assemble(m1)
-    #print "\int grad(u) * n ds(2) = ", v1
-    
-    # Evaluate integral of u over the obstacle
-    m2 = u*dx(1)
-    v2 = assemble(m2)
-    #print "\int u dx(1) = ", v2
-    
+        
     # Plot solution and gradient
-    plot(u, title="u")
+    #plot(u, title="u")
     gul=grad(u)
     plot(gul, title="Projected grad(u) left")
     gur=grad(-u)
@@ -140,8 +136,29 @@ def Gradient():
             return(pror(1-x,y))
         return(prol(1+x,y))
         
-    
-    return(gradient)
+        
+        
+    def BiotSavart2(x) :
+        
+        if(x[0] < 1 and x[0] > -1 and x[1] > 0 and x[1] < 1) :
+            return 0
+            
+        H=0
+        for yi in range(n):
+            for xi in range(n*2):
+                xleft=-1+0.5*h+xi*h
+                y=0.5*h+yi*h
+                
+                gra=gradient(xleft,y)
+                
+                x0=x[0]-xleft
+                x1=x[1]-y
+                H += (gra[0]*x1 - gra[1]*x0)/(sqrt(x0*x0+x1*x1)**3) 
+                
+        return H / (4*np.pi)
+                
+                
+    return(gradient, BiotSavartMatrix(gradient))
     #flux = [1,1]*grad(u)
     
     #plot(flux, title='flux field')
@@ -151,30 +168,39 @@ def Gradient():
     #plot(flux_y, title='y-component of flux (-p*grad(u))')
     
 def test() :
-    g=Gradient()
+    (g, o)=Gradient()
+    ynorm=np.zeros((201,101))
+    yin0=np.zeros((201,101))
+    yin1=np.zeros((201,101))
+    
+    
     x=range(0,101)
     x = np.array(x)
     x = x/100.
     y = np.array(x)
     y2 = np.array(x)
-    ynorm=np.zeros((201,101))
-    yin0=np.zeros((201,101))
-    yin1=np.zeros((201,101))
-    
     for i in range(101) :
         y[i]=g(0,x[i])[0] 
         y2[i]=g(0,x[i])[1]
-        
-        for i in range(201) :
-            for j in range(101) :
-                cx=(i/100.0) - 1
-                cy=(j/100.0)
-                ynorm[i,j]=np.linalg.norm(g(cx,cy))
-                yin0[i,j]=g(cx,cy)[0]
-                yin1[i,j]=g(cx,cy)[1]
-                    
+    mpl.figure()    
     mpl.plot(x,y)
     mpl.plot(x,y2)
+        
+    for i in range(201) :
+        for j in range(101) :
+            cx=(i/100.0) - 1
+            cy=(j/100.0)
+            ynorm[i,j]=np.linalg.norm(g(cx,cy))
+            yin0[i,j]=g(cx,cy)[0]
+            yin1[i,j]=g(cx,cy)[1]
+            
+    Hp=np.zeros((40,20))
+    for i in range(40) :
+        for j in range(20) :
+            cx=(i/10.0) -2
+            cy=(j/5.0)-1
+            Hp[i,j]=o((cx,cy))
+                
     
     mpl.figure()
     mpl.imshow(ynorm)
@@ -188,5 +214,34 @@ def test() :
     mpl.imshow(yin1)
     mpl.colorbar()
     
+    
+    mpl.figure()
+    mpl.imshow(Hp, cmap=cm.coolwarm)
+    mpl.colorbar()
+    
     mpl.show()
-         
+    
+    
+(g, v) = Gradient()
+zz=np.dot(v[0],v[1])
+Ai = pinv(v[0], rcond=10E-10)
+v_erg = np.dot(Ai, zz)
+
+mpl.figure()
+mpl.plot(v[1][0::2,:])
+mpl.plot(v_erg[0::2,:])
+
+
+x=range(0,101)
+x = np.array(x)
+x = x/100.
+y = np.array(x)
+y2 = np.array(x)
+for i in range(101) :
+    y[i]=g(0,x[i])[0] 
+    y2[i]=g(0,x[i])[1]
+#mpl.figure()    
+#mpl.plot(x,y)
+#mpl.plot(x,y2)
+print(v[3])
+mpl.show()

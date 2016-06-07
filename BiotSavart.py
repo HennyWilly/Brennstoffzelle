@@ -52,7 +52,7 @@ def BiotSavart(x, J):
     
     return 1 / (4 * math.pi) * (intl + intr)
     
-def BiotSavartMatrix(J, n=100., m=36.):
+def BiotSavartMatrix(J, n=21*21., m=6**2):
     #n Auswwertungsstellen
     #m Messstellen
     #2n > m, sonst liegt ein unterbestimmtes System vor
@@ -60,7 +60,7 @@ def BiotSavartMatrix(J, n=100., m=36.):
     discJ = zeros((2 * n, 1), float)
     yList = zeros((n, 2), float)
     xList = zeros((m, 2), float)
-    for (i, y) in enumerate(itertools.product(linspace(-1, 1, sqrt(n)/2), linspace(0, 1, sqrt(n)/2))):
+    for (i, y) in enumerate(itertools.product(linspace(-1, 1, sqrt(n)), linspace(0, 1, sqrt(n)))):
         #diskrete Auswertungsstellen
         yList[i] = array(y)
         
@@ -82,10 +82,10 @@ def BiotSavartMatrix(J, n=100., m=36.):
                 BS[j][2*i + 1] = BS[j][2*i + 1] / 2
             
         #diskrete J's
-        discJ[2*i] = J(y)[0]
-        discJ[2*i + 1] = J(y)[1]
+        discJ[2*i] = J(*y)[0]
+        discJ[2*i + 1] = J(*y)[1]
             
-    return BS, discJ, xList
+    return BS, discJ, xList, yList
     
 if __name__ == '__main__':
     BS, J, x = BiotSavartMatrix(lambda x: (1, 1))
