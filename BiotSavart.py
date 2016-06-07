@@ -85,7 +85,7 @@ def BiotSavartMatrix(J, n=100., m=36.):
         discJ[2*i] = J(y)[0]
         discJ[2*i + 1] = J(y)[1]
             
-    return BS, discJ
+    return BS, discJ, xList
     
 if __name__ == '__main__':
     BS, J = BiotSavartMatrix(lambda x: (1, 1))
