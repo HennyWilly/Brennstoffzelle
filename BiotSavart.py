@@ -64,7 +64,7 @@ def BiotSavartMatrix(J, n=21*21., m=6**2):
         #diskrete Auswertungsstellen
         yList[i] = array(y)
         
-    for (i, x) in enumerate(itertools.chain(itertools.product(linspace(-1, 1, m/4.), (0.0, 1.0)), itertools.product((-1., 1.), linspace(0, 1, m/4.)))):
+    for (i, x) in enumerate(itertools.chain(itertools.product(linspace(-1.1, 1.1, m/4.), (-0.1, 1.1)), itertools.product((-1.1, 1.1), linspace(-0.1, 1.1, m/4.)))):
         #diskrete Messstellen
         xList[i] = array(x)     
         
