@@ -7,16 +7,30 @@ import numpy as np
 import numpy.matlib as matlib
 import scipy.optimize as spOpt
 from scipy.linalg import *
-from mpl_toolkits.mplot3d import Axes3D
 
 def tikhonov(A, b, alpha, allowNegative=True):
     """
-    Hier koennte Ihr PythonDoc stehen
+    Wendet die Tikhonov-Regularisierung auf die Matrix A und die Lösung b an.
+    
+    @type  A: matrix
+    @param A: Die zu regularisierende Matrix.
+    @type  b: vector
+    @param b: Die Lösung der Matrixoperation.
+    @type  alpha: number
+    @param alpha: Der Regularisierungsparameter.
+    @type  allowNegative: boolean 
+    @param allowNegative: Wenn false, werden nur positive x-Werte zur Annäherung erlaubt; sonst auch negative.
+    
+    @rtype: vector, number, number
+    @return: Solution, Residuum, Norm der Lösung
     """
     
     n = A.shape[0]
     A1 = np.concatenate((A, alpha * matlib.identity(n)))
     b1 = np.concatenate((b, np.zeros(shape=(n,1))))
+    
+    print A, A.shape
+    print A1, A1.shape
 
     if (allowNegative):
         x, res, rank, s = lstsq(A1, np.squeeze(b1))
@@ -24,6 +38,20 @@ def tikhonov(A, b, alpha, allowNegative=True):
     else:
         x, res = spOpt.nnls(A1, np.squeeze(b1))
         return x, res, norm(x)
+    
+def tikhonov2(A, b, alpha):
+    n = np.amax(A.shape)
+    
+    part1 = np.dot(A.transpose(), A)
+    part2 = alpha * np.identity(n)
+    part3 = np.add(part1, part2)
+    part4 = inv(part3)
+    part5 = np.dot(part4, A.transpose())
+    print "part5 = {}".format(part5)
+    part6 = np.dot(part5, b)
+    print "part6 = {}".format(part6)
+    
+    return part6
     
 def l_curve(A, b, n):
     """
