@@ -13,7 +13,7 @@ from BiotSavart import BiotSavartMatrix
 from matplotlib import cm
 from numpy.linalg import pinv
 from numpy.linalg import svd
-
+from Tikhonov import tikhonov2
     
 def Gradient():    
     # Create classes for defining parts of the boundaries and the interior
@@ -53,7 +53,10 @@ def Gradient():
                 values[0] = 0
             else:
                 values[0] = 5
-        
+            values[0] = 1
+            
+        #def value_shape(self):
+            #return (2,)
     n=30
     h=1.0/n
     mesh = UnitSquareMesh(n, n)
@@ -69,14 +72,12 @@ def Gradient():
     right = Right()
     bottom1 = BottomOld()
     bottom = Bottom()
-    obstacle = Obstacle()
     
     # Define mesh
     
     # Initialize mesh function for interior domains
     domains = CellFunction("size_t", mesh)
     domains.set_all(0)
-    obstacle.mark(domains, 1)
     
     # Initialize mesh function for boundary domains
     boundaries = FacetFunction("size_t", mesh)
@@ -153,12 +154,13 @@ def Gradient():
                 
                 x0=x[0]-xleft
                 x1=x[1]-y
-                H += (gra[0]*x1 - gra[1]*x0)/(sqrt(x0*x0+x1*x1)**3) 
+                H += (gra[0]*x1 - gra[1]*x0)/(sqrt(x0*x0+x1*x1)**3) * (h*h)
                 
         return H / (4*np.pi)
                 
                 
-    return(gradient, BiotSavartMatrix(gradient))
+    ( BS, discJ, xList, yList ) = BiotSavartMatrix(gradient)
+    return(gradient, BS, discJ, xList, yList, BiotSavart2)
     #flux = [1,1]*grad(u)
     
     #plot(flux, title='flux field')
@@ -222,14 +224,17 @@ def test() :
     mpl.show()
     
     
-(g, v) = Gradient()
-zz=np.dot(v[0],v[1])
-Ai = pinv(v[0], rcond=10E-10)
-v_erg = np.dot(Ai, zz)
+(g, BS, discJ, xList, yList, B2) = Gradient()
+zz=np.dot(BS,discJ)
+#v_erg = np.dot(np.dot(np.linalg.inv(np.dot(np.transpose(BS), BS)),np.transpose(BS)),zz)
+v_erg = tikhonov2(BS, zz, 10e-11)
 
+#Ai = pinv(BS, rcond=10E-10)
+
+#v_erg = np.dot(Ai, zz)
 mpl.figure()
-mpl.plot(v[1][0::2,:])
-mpl.plot(v_erg[0::2,:])
+mpl.plot(discJ[0::2])
+mpl.plot(v_erg[0::2])
 
 
 x=range(0,101)
@@ -243,5 +248,29 @@ for i in range(101) :
 #mpl.figure()    
 #mpl.plot(x,y)
 #mpl.plot(x,y2)
-print(v[3])
+
+print(yList)
+mea_erg=[]
+mea_exact=[]
+mea_erg2=[]
+mea_exact2=[]
+for i in range(len(yList)):
+    print(yList[i])
+    if(near(yList[i][0], 0.0)) :
+      mea_erg.append(v_erg[i*2])
+      mea_exact.append(discJ[i*2])  
+      
+      mea_erg2.append(v_erg[i*2+1])
+      mea_exact2.append(discJ[i*2+1]) 
+
+#for i in range(len(xList)) :
+ #   print(xList[i], zz[i], B2(xList[i]))
+
+mpl.figure()
+mpl.plot(mea_exact, label="mea_exact")
+mpl.plot(mea_erg, label="mea_erg")
+mpl.plot(mea_exact2, label="mea_exact2")
+mpl.plot(mea_erg2, label="mea_erg2")
+mpl.legend()
+
 mpl.show()
