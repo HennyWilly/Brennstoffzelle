@@ -26,7 +26,8 @@ def tikhonov(A, b, alpha, allowNegative=True):
     """
     
     n = A.shape[0]
-    A1 = np.concatenate((A, alpha * matlib.identity(n)))
+    m = A.shape[1]
+    A1 = np.concatenate((A, alpha * matlib.identity(m)))
     b1 = np.concatenate((b, np.zeros(shape=(n,1))))
     
     print A, A.shape
