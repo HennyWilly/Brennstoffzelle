@@ -48,9 +48,7 @@ def tikhonov2(A, b, alpha):
     part3 = np.add(part1, part2)
     part4 = inv(part3)
     part5 = np.dot(part4, A.transpose())
-    print "part5 = {}".format(part5)
     part6 = np.dot(part5, b)
-    print "part6 = {}".format(part6)
     
     return part6
     
@@ -85,3 +83,9 @@ def l_curve(A, b, n):
 
     fig.canvas.mpl_connect('pick_event', onpick1)
     plt.show()
+
+def noisy_y(y, delta):
+    n, m = y.shape
+    z = np.random.randn(n, 1)
+    
+    return array( [ y[i] + delta * z[i] for i in xrange(0, n)] )
